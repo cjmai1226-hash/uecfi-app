@@ -347,17 +347,25 @@ export const createItemStyles = (
 ) =>
   StyleSheet.create({
     card: {
-      backgroundColor: colors.card,
+      // Dark tinted glass look for list items
+      backgroundColor: (() => {
+        if (isDark) return 'rgba(13, 17, 23, 0.55)'; // translucent dark
+        // keep light theme mostly solid, slight translucency for subtle glass
+        return brand === 'expressive' ? 'rgba(255,255,255,0.75)' : colors.card;
+      })(),
       borderRadius: brand === 'expressive' ? 20 : 16,
       marginHorizontal: 8,
       marginVertical: 8,
       borderWidth: 1,
-      borderColor: brand === 'expressive' ? `${colors.primary}33` : colors.border,
+      borderColor: (() => {
+        if (isDark) return 'rgba(255,255,255,0.12)'; // subtle light inner border on dark glass
+        return brand === 'expressive' ? `${colors.primary}33` : colors.border;
+      })(),
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: brand === 'expressive' ? 0.12 : 0.08,
-      shadowRadius: brand === 'expressive' ? 10 : 8,
-      elevation: brand === 'expressive' ? 6 : 4,
+      shadowOpacity: brand === 'expressive' ? 0.14 : isDark ? 0.2 : 0.08,
+      shadowRadius: brand === 'expressive' ? 10 : isDark ? 12 : 8,
+      elevation: brand === 'expressive' ? 6 : isDark ? 8 : 4,
     },
     cardInner: {
       paddingHorizontal: brand === 'expressive' ? 18 : 16,

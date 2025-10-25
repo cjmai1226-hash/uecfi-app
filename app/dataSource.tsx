@@ -171,7 +171,7 @@ export default function DataSourceScreen() {
           {/* Pending updates list */}
           <View style={{ paddingHorizontal: 16 }}>
             <Text style={{ color: colors.textMuted, fontSize: 12 }}>
-              Content is bundled with the app and loaded locally via SQLite.
+              Content is bundled with the app and loaded locally.
             </Text>
           </View>
         </SafeAreaView>

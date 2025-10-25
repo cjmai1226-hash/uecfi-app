@@ -22,13 +22,13 @@ export const DynamicHeader = () => {
 
   // Determine current tab label from the pathname
   const currentLabel = (() => {
-    if (!pathname) return 'songs';
-    if (pathname.endsWith('/prayers')) return 'prayers';
-    if (pathname.endsWith('/bookmark')) return 'bookmarks';
-    if (pathname.endsWith('/centers')) return 'centers';
+    if (!pathname) return 'Songs';
+    if (pathname.endsWith('/prayers')) return 'Prayers';
+    if (pathname.endsWith('/bookmark')) return 'Bookmarks';
+    if (pathname.endsWith('/centers')) return 'Centers';
     // index route for songs tab within (tabs)
     if (pathname.endsWith('/index') || pathname.endsWith('/(tabs)')) return 'Songs';
-    return 'songs';
+    return 'Songs';
   })();
 
   return (

@@ -165,7 +165,7 @@ export default function Settings() {
           <ScrollView style={{ flex: 1 }}>
             {/* Header with brand */}
             <View style={prefStyles.header}>
-              <BrandTitle label="settings" size={24} />
+              <BrandTitle label="Settings" size={24} />
             </View>
 
             {/* Preferences (plain rows) */}
