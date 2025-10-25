@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "UECFI App",
+    "slug": "uecfi-prayer-app",
+    "version": "1.0.0",
+    "scheme": "uecfi-prayer-app",
+    "platforms": ["android", "web"],
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-web-browser",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-8333503696162383~7377199936"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon-light.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      "expo-font",
+
+      "expo-sqlite",
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "tsconfigPaths": true
+    },
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.uecfi.prayerapp"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "76b2ce14-83e5-4f0f-a964-d23a68700e73"
+      }
+    }
+  }
+}

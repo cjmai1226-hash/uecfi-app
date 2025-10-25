@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Typecheck project",
+      "type": "shell",
+      "command": "npm run typecheck",
+      "args": [],
+      "problemMatcher": ["$tsc"],
+      "group": "build"
+    },
+    {
+      "label": "Typecheck project",
+      "type": "shell",
+      "command": "npm run typecheck",
+      "group": "build"
+    },
+    {
+      "label": "Typecheck project",
+      "type": "shell",
+      "command": "npm run typecheck",
+      "group": "build"
+    },
+    {
+      "label": "Typecheck project",
+      "type": "shell",
+      "command": "npm run typecheck",
+      "group": "build"
+    },
+    {
+      "label": "Install SQLite deps",
+      "type": "shell",
+      "command": "npm install expo-sqlite expo-asset expo-file-system",
+      "isBackground": false,
+      "problemMatcher": ["$eslint - stylish"],
+      "group": "build"
+    },
+    {
+      "label": "Typecheck project",
+      "type": "shell",
+      "command": "npm run web",
+      "group": "build"
+    }
+  ]
+}
