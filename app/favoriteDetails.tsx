@@ -1,4 +1,4 @@
-import { createHomeStyles } from '../assets/styles';
+import { createHomeStyles, createItemStyles } from '../assets/styles';
 import { useTheme, useFontSize, useLanguage } from '../hooks';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -25,10 +25,11 @@ export type Prayer = {
 // };
 
 const FavoriteDetailsScreen = () => {
-  const { colors } = useTheme();
+  const { colors, isDark, brand } = useTheme();
   const { getFontSizeValue, getLineHeight } = useFontSize();
   const { isAltLanguage } = useLanguage();
   const homeStyles = createHomeStyles(colors);
+  const itemStyles = createItemStyles(colors, isDark, brand);
   const router = useRouter();
   const params = useLocalSearchParams();
   const { bannerOffset, trackInteraction } = useAds();
@@ -208,21 +209,8 @@ const FavoriteDetailsScreen = () => {
               justifyContent: 'space-between',
             }}>
             {currentPrayer.category && (
-              <View
-                style={{
-                  backgroundColor: colors.surface,
-                  paddingHorizontal: 12,
-                  paddingVertical: 4,
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                }}>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: colors.textMuted,
-                    fontWeight: '600',
-                  }}>
+              <View style={itemStyles.category}>
+                <Text style={[itemStyles.categoryText, { fontSize: 12 }]}>
                   {currentPrayer.category.toUpperCase()}
                 </Text>
               </View>

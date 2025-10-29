@@ -19,11 +19,11 @@ type Prayer = {
 };
 
 const PrayerDetailsScreen = () => {
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, brand } = useTheme();
   const { getFontSizeValue, getLineHeight } = useFontSize();
   const { isAltLanguage } = useLanguage();
   const homeStyles = createHomeStyles(colors);
-  const itemStyles = createItemStyles(colors, isDark);
+  const itemStyles = createItemStyles(colors, isDark, brand);
   const params = useLocalSearchParams();
   const router = useRouter();
   const { bannerOffset, trackInteraction } = useAds();

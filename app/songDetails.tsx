@@ -1,4 +1,4 @@
-import { createHomeStyles } from '../assets/styles';
+import { createHomeStyles, createItemStyles } from '../assets/styles';
 import { useTheme, useFontSize } from '../hooks';
 import React, { useEffect } from 'react';
 import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
@@ -49,9 +49,10 @@ const highlightKeywords = (text?: string) => {
 };
 
 const SongDetailsScreen = () => {
-  const { colors } = useTheme();
+  const { colors, isDark, brand } = useTheme();
   const { getFontSizeValue, getLineHeight } = useFontSize();
   const homeStyles = createHomeStyles(colors);
+  const itemStyles = createItemStyles(colors, isDark, brand);
   const params = useLocalSearchParams();
   const router = useRouter();
   const { bannerOffset, trackInteraction } = useAds();
@@ -119,22 +120,8 @@ const SongDetailsScreen = () => {
 
           {/* Category */}
           {song.category && (
-            <View
-              style={{
-                alignSelf: 'flex-start',
-                backgroundColor: colors.surface,
-                paddingHorizontal: 12,
-                paddingVertical: 4,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: colors.border,
-              }}>
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: colors.textMuted,
-                  fontWeight: '600',
-                }}>
+            <View style={itemStyles.category}>
+              <Text style={[itemStyles.categoryText, { fontSize: 12 }]}>
                 {song.category.toUpperCase()}
               </Text>
             </View>

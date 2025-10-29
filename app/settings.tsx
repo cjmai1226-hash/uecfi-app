@@ -177,16 +177,7 @@ export default function Settings() {
             <View style={prefStyles.header}>
               <BrandTitle label="Settings" size={24} />
             </View>
-
-            {/* Preferences (plain rows) */}
-            <PreferenceRow
-              title="Prayer Language"
-              subtitle={getLanguageLabel()}
-              icon="language-outline"
-              onPress={handleLanguageToggle}
-            />
-
-            <View style={prefStyles.rowDivider} />
+            
             {/* Rewarded Ad unlock for temporary ad-free */}
             <PreferenceRow
               title="Ad-Free for 1 Hour"
@@ -204,6 +195,16 @@ export default function Settings() {
               }}
             />
             <View style={prefStyles.rowDivider} />
+            {/* Preferences (plain rows) */}
+            <PreferenceRow
+              title="Prayer Language"
+              subtitle={getLanguageLabel()}
+              icon="language-outline"
+              onPress={handleLanguageToggle}
+            />
+
+            <View style={prefStyles.rowDivider} />
+
             {/* Color Theme row (brand palette) */}
             <PreferenceRow
               title="Color Theme"
