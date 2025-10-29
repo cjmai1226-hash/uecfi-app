@@ -1,7 +1,8 @@
 import { createHomeStyles, createItemStyles } from '../../assets/styles';
 import { useTheme, useSearch } from '../../hooks';
 import { useEffect, useState } from 'react';
-import { FlatList, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StatusBar, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 // Switch from Firestore to SQLite-backed data source
@@ -65,6 +66,7 @@ export default function Songs() {
       }}
       activeOpacity={0.6}
       style={itemStyles.card}>
+      <BlurView tint={isDark ? 'dark' : 'light'} intensity={isDark ? 50 : 30} style={StyleSheet.absoluteFillObject} />
       <View style={itemStyles.cardInner}>
         {/* Content */}
         <View style={itemStyles.content}>
@@ -121,7 +123,11 @@ export default function Songs() {
             <FlatList
               data={filteredSongs}
               renderItem={renderSongItem}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item, index) => {
+                const raw = (item as any).id ?? (item as any)._id;
+                const id = raw != null ? String(raw).trim() : '';
+                return id.length > 0 ? id : `song-${index}`;
+              }}
               style={homeStyles.todoList}
               contentContainerStyle={homeStyles.todoListContent}
               keyboardDismissMode="on-drag"

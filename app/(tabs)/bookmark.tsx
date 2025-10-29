@@ -4,7 +4,8 @@ import { useTheme, useLanguage, useSearch } from '../../hooks';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { FlatList, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StatusBar, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -36,19 +37,28 @@ const Bookmark = () => {
       const bookmarkKeys = keys.filter((key) => key.startsWith('@favorite_'));
       const storedBookmarks = await AsyncStorage.multiGet(bookmarkKeys);
 
-      const bookmarks: BookmarkItem[] = storedBookmarks
-        .map(([key, value]) => {
-          if (!value) return null;
-          try {
-            // The stored value is the full prayer/song object
-            const item = JSON.parse(value) as BookmarkItem;
-            // Ensure the item object has a consistent 'id' field for the keyExtractor
-            return { ...item, id: item.id ?? (item as any)._id };
-          } catch {
-            return null;
-          }
-        })
-        .filter((item): item is BookmarkItem => item !== null && item.id != null);
+      const rawList: (BookmarkItem | null)[] = storedBookmarks.map(([key, value]) => {
+        if (!value) return null;
+        try {
+          const item = JSON.parse(value) as BookmarkItem;
+          const rawId = (item as any).id ?? (item as any)._id ?? '';
+          const id = String(rawId).trim();
+          if (!id) return null; // drop empty-id entries to avoid duplicate empty keys
+          return { ...item, id } as BookmarkItem;
+        } catch {
+          return null;
+        }
+      });
+
+      // Deduplicate by id while preserving order
+      const seen = new Set<string>();
+      const bookmarks: BookmarkItem[] = [];
+      for (const it of rawList) {
+        if (!it) continue;
+        if (seen.has(it.id)) continue;
+        seen.add(it.id);
+        bookmarks.push(it);
+      }
 
       setBookmarkedItems(bookmarks);
     } catch (e) {
@@ -84,6 +94,7 @@ const Bookmark = () => {
       }}
       activeOpacity={0.6}
       style={itemStyles.card}>
+      <BlurView tint={isDark ? 'dark' : 'light'} intensity={isDark ? 50 : 30} style={StyleSheet.absoluteFillObject} />
       <View style={itemStyles.cardInner}>
         {/* Content */}
         <View style={itemStyles.content}>
@@ -145,7 +156,10 @@ const Bookmark = () => {
             <FlatList
               data={bookmarkedItems}
               renderItem={renderBookmarkItem}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item, index) => {
+                const id = String((item as any).id ?? (item as any)._id ?? '').trim();
+                return id.length > 0 ? id : `bookmark-${index}`;
+              }}
               style={homeStyles.todoList}
               contentContainerStyle={homeStyles.todoListContent}
               keyboardDismissMode="on-drag"

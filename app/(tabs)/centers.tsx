@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StatusBar, TouchableOpacity, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme, useSearch } from '../../hooks';
 import { getAllCenters } from '../../sql/sqlite';
@@ -50,6 +51,7 @@ export default function CentersTab() {
         setSearchQuery('');
         router.push({ pathname: '/centerDetails', params: { center: JSON.stringify(item) } });
       }}>
+      <BlurView tint={isDark ? 'dark' : 'light'} intensity={isDark ? 50 : 30} style={StyleSheet.absoluteFillObject} />
       <View style={itemStyles.cardInner}>
         <View style={itemStyles.content}>
           <View style={itemStyles.titleRow}>
@@ -160,7 +162,11 @@ export default function CentersTab() {
             {isFirstTimeLoading && <LoadingSpinner />}
             <FlatList
               data={sorted}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item, index) => {
+                const raw = (item as any).id ?? (item as any)._id;
+                const id = raw != null ? String(raw).trim() : '';
+                return id.length > 0 ? id : `center-${index}`;
+              }}
               renderItem={renderItem}
               style={homeStyles.todoList}
               contentContainerStyle={homeStyles.todoListContent}

@@ -96,8 +96,8 @@ export const lightTheme: ThemeColors = {
   secondaryLight: '#E8F6FD', // light blue background
   secondaryDark: '#1B8FC5',
 
-  // Background colors
-  background: '#ffffffff',
+  // Background colors (slightly darker than pure white for softer contrast)
+  background: '#F4F8FB',
   surface: '#F4F8FB', // light, airy surface
   card: '#FFFFFF',
 

@@ -46,6 +46,7 @@ export const createHomeStyles = (colors: ColorScheme) => {
       paddingHorizontal: 20,
       paddingBottom: 16,
       borderBottomWidth: 0.5,
+      backgroundColor: colors.background,
       borderBottomColor: colors.border,
     },
     titleContainer: {
@@ -343,33 +344,34 @@ export const createHomeStyles = (colors: ColorScheme) => {
 export const createItemStyles = (
   colors: ColorScheme,
   isDark: boolean,
-  brand: 'facebook' | 'telegram' | 'expressive' = 'facebook'
+  brand: 'facebook' | 'telegram' = 'facebook'
 ) =>
   StyleSheet.create({
     card: {
       // Dark tinted glass look for list items
       backgroundColor: (() => {
         if (isDark) return 'rgba(13, 17, 23, 0.55)'; // translucent dark
-        // keep light theme mostly solid, slight translucency for subtle glass
-        return brand === 'expressive' ? 'rgba(255,255,255,0.75)' : colors.card;
+        return colors.card;
       })(),
-      borderRadius: brand === 'expressive' ? 20 : 16,
+      borderRadius: 16,
       marginHorizontal: 8,
       marginVertical: 8,
       borderWidth: 1,
       borderColor: (() => {
         if (isDark) return 'rgba(255,255,255,0.12)'; // subtle light inner border on dark glass
-        return brand === 'expressive' ? `${colors.primary}33` : colors.border;
+        return colors.border;
       })(),
+      overflow: 'hidden', // required to clip BlurView
+      position: 'relative',
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: brand === 'expressive' ? 0.14 : isDark ? 0.2 : 0.08,
-      shadowRadius: brand === 'expressive' ? 10 : isDark ? 12 : 8,
-      elevation: brand === 'expressive' ? 6 : isDark ? 8 : 4,
+      shadowOpacity: isDark ? 0.2 : 0.08,
+      shadowRadius: isDark ? 12 : 8,
+      elevation: isDark ? 8 : 4,
     },
     cardInner: {
-      paddingHorizontal: brand === 'expressive' ? 18 : 16,
-      paddingVertical: brand === 'expressive' ? 18 : 16,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
       flexDirection: 'row',
       alignItems: 'flex-start',
     },
@@ -395,7 +397,6 @@ export const createItemStyles = (
           return `rgba(${r}, ${g}, ${b}, ${a})`;
         };
         if (brand === 'facebook') return isDark ? '#23272B' : colors.surface;
-        if (brand === 'expressive') return alpha(colors.primary, isDark ? 0.24 : 0.14);
         return alpha(colors.primary, isDark ? 0.22 : 0.16);
       })(),
       alignItems: 'center',
@@ -420,7 +421,6 @@ export const createItemStyles = (
           return `rgba(${r}, ${g}, ${b}, ${a})`;
         };
         if (brand === 'facebook') return isDark ? colors.border : 'transparent';
-        if (brand === 'expressive') return alpha(colors.primary, isDark ? 0.5 : 0.4);
         return alpha(colors.primary, isDark ? 0.5 : 0.4);
       })(),
     },
@@ -460,7 +460,6 @@ export const createItemStyles = (
           return `rgba(${r}, ${g}, ${b}, ${a})`;
         };
         if (brand === 'facebook') return colors.surface;
-        if (brand === 'expressive') return alpha(colors.primary, isDark ? 0.18 : 0.1);
         return alpha(colors.primary, isDark ? 0.18 : 0.12);
       })(),
       paddingHorizontal: 12,
@@ -485,7 +484,6 @@ export const createItemStyles = (
           return `rgba(${r}, ${g}, ${b}, ${a})`;
         };
         if (brand === 'facebook') return colors.border;
-        if (brand === 'expressive') return alpha(colors.primary, isDark ? 0.45 : 0.3);
         return alpha(colors.primary, isDark ? 0.45 : 0.35);
       })(),
     },

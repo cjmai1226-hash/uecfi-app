@@ -8,7 +8,7 @@ import Constants from 'expo-constants';
 // A persistent bottom banner that respects safe-area and notifies FABs for offset
 export const BottomBannerAd: React.FC = () => {
   const insets = useSafeAreaInsets();
-  const { setBannerOffset } = useAds();
+  const { setBannerOffset, isAdFree } = useAds();
   const [height, setHeight] = useState(0);
   const [BannerAdComp, setBannerAdComp] = useState<null | (typeof import('react-native-google-mobile-ads'))['BannerAd']>(null);
   const [BannerAdSizeVal, setBannerAdSizeVal] = useState<null | (typeof import('react-native-google-mobile-ads'))['BannerAdSize']>(null);
@@ -37,6 +37,13 @@ export const BottomBannerAd: React.FC = () => {
   }, []);
 
   if (Platform.OS !== 'android' || isExpoGo) return null;
+
+  // While ad-free is active, make sure offset is cleared and don't render the ad
+  if (isAdFree) {
+    if (height !== 0) setHeight(0);
+    setBannerOffset(0);
+    return null;
+  }
 
   if (!BannerAdComp || !BannerAdSizeVal) return null;
 

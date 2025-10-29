@@ -14,9 +14,17 @@ import Constants from 'expo-constants';
 
 // Context provides interaction tracking and ad triggers
 interface AdsContextValue {
-  trackInteraction: () => void; // call on tab/page clicks
-  bannerOffset: number; // height of banner to offset FABs etc
+  // Call on tab/page clicks so we can occasionally show interstitials
+  trackInteraction: () => void;
+  // Height of banner to offset FABs etc
+  bannerOffset: number;
   setBannerOffset: (h: number) => void;
+  // True while ads are disabled by reward or other policy
+  isAdFree: boolean;
+  // Milliseconds left in current ad-free window (0 when inactive)
+  adFreeRemainingMs: number;
+  // Starts a rewarded ad flow; returns true only when the user earns the reward
+  startAdFreeWithReward: () => Promise<boolean>;
 }
 
 const AdsContext = createContext<AdsContextValue | null>(null);
@@ -32,6 +40,7 @@ const STORAGE_KEYS = {
   lastAppOpenShown: '@ads_last_app_open_shown',
   interactionCount: '@ads_interaction_count',
   lastInteractionTs: '@ads_last_interaction_ts',
+  adFreeUntilTs: '@ads_disable_until_ts',
 };
 
 // Helper with 1-day TTL to avoid showing app-open repeatedly on first launch
@@ -44,6 +53,9 @@ export const AdsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const interstitialRef = useRef<any>(null);
   const appOpenRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
+  // Ad-free (rewarded) state
+  const [adFreeUntil, setAdFreeUntil] = useState<number>(0);
+  const [nowTick, setNowTick] = useState<number>(Date.now()); // used to recompute remaining time
 
   // Initialize the SDK once
   useEffect(() => {
@@ -73,6 +85,41 @@ export const AdsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, []);
 
+  // Load persisted ad-free state and keep it updated
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEYS.adFreeUntilTs);
+        const ts = raw ? parseInt(raw, 10) : 0;
+        if (mounted) setAdFreeUntil(ts);
+      } catch {}
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Re-render when the ad-free window is active so remaining time updates occasionally
+  useEffect(() => {
+    if (!adFreeUntil) return;
+    const interval = setInterval(() => setNowTick(Date.now()), 30_000); // 30s heartbeat
+    return () => clearInterval(interval);
+  }, [adFreeUntil]);
+
+  // When the ad-free window is set, schedule a timeout to flip it off exactly at expiry
+  useEffect(() => {
+    if (!adFreeUntil) return;
+    const now = Date.now();
+    const msLeft = Math.max(0, adFreeUntil - now);
+    if (msLeft === 0) return;
+    const to = setTimeout(() => {
+      setAdFreeUntil(0);
+      AsyncStorage.setItem(STORAGE_KEYS.adFreeUntilTs, '0').catch(() => {});
+    }, msLeft);
+    return () => clearTimeout(to);
+  }, [adFreeUntil]);
+
   // Prepare App Open ad once per fresh app start
   useEffect(() => {
     if (!ready) return;
@@ -81,6 +128,8 @@ export const AdsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const mod = googleAdsModRef.current;
     if (!mod) return;
     if (Platform.OS !== 'android') return; // only targeting Android
+    // Don't show app-open ads while ad-free
+    if (Date.now() < adFreeUntil) return;
 
     const loadAndMaybeShow = async () => {
       try {
@@ -111,6 +160,10 @@ export const AdsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     loadAndMaybeShow();
   }, [ready]);
+  // Recalculate if ad-free flips
+  useEffect(() => {
+    // no-op; dependency used to re-run app-open guard when adFreeUntil changes
+  }, [adFreeUntil]);
 
   // Interstitial logic: show after N interactions
   const ensureInterstitial = useCallback(() => {
@@ -127,6 +180,8 @@ export const AdsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const trackInteraction = useCallback(() => {
     (async () => {
       try {
+        // Skip counting interactions if we're in an ad-free window
+        if (Date.now() < adFreeUntil) return;
         ensureInterstitial();
         const mod = googleAdsModRef.current;
         const isExpoGo = Constants.appOwnership === 'expo';
@@ -173,11 +228,94 @@ export const AdsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } catch {}
     })();
-  }, [ensureInterstitial]);
+  }, [ensureInterstitial, adFreeUntil]);
+
+  // Helper to start a rewarded ad flow that unlocks 1 hour ad-free on success
+  const startAdFreeWithReward = useCallback(async (): Promise<boolean> => {
+    try {
+      const isExpoGo = Constants.appOwnership === 'expo';
+      if (isExpoGo) return false;
+      const mod = googleAdsModRef.current;
+      if (!mod) return false;
+      if (Platform.OS !== 'android') return false;
+
+      // If already ad-free, simply return true
+      if (Date.now() < adFreeUntil) return true;
+
+      const rewarded = mod.RewardedAd.createForAdRequest(ADS.REWARDED);
+
+      let resolvePromise: (v: boolean) => void = () => {};
+      let settled = false;
+      const outcome = new Promise<boolean>((resolve) => (resolvePromise = resolve));
+
+      const cleanup = () => {
+        try {
+          rewarded.removeAllListeners();
+        } catch {}
+      };
+
+      // When loaded, show it
+      rewarded.addAdEventListener(mod.AdEventType.LOADED, () => {
+        try {
+          rewarded.show();
+        } catch {
+          if (!settled) {
+            settled = true;
+            cleanup();
+            resolvePromise(false);
+          }
+        }
+      });
+
+      // When user earns the reward, grant 1 hour ad-free
+      rewarded.addAdEventListener(mod.RewardedAdEventType.EARNED_REWARD, async () => {
+        const until = Date.now() + 60 * 60 * 1000; // 1 hour
+        setAdFreeUntil(until);
+        await AsyncStorage.setItem(STORAGE_KEYS.adFreeUntilTs, String(until));
+        if (!settled) {
+          settled = true;
+          cleanup();
+          resolvePromise(true);
+        }
+      });
+
+      // Closed without reward or after reward; if not settled by reward, resolve false
+      rewarded.addAdEventListener(mod.AdEventType.CLOSED, () => {
+        if (!settled) {
+          settled = true;
+          cleanup();
+          resolvePromise(false);
+        }
+      });
+
+      rewarded.addAdEventListener(mod.AdEventType.ERROR, () => {
+        if (!settled) {
+          settled = true;
+          cleanup();
+          resolvePromise(false);
+        }
+      });
+
+      rewarded.load();
+      return outcome;
+    } catch {
+      return false;
+    }
+  }, [adFreeUntil]);
+
+  const isAdFree = Date.now() < adFreeUntil;
+  const adFreeRemainingMs = Math.max(0, adFreeUntil - nowTick);
 
   const value = useMemo(
-    () => ({ trackInteraction, bannerOffset, setBannerOffset }),
-    [trackInteraction, bannerOffset]
+    () => ({
+      trackInteraction,
+      bannerOffset,
+      setBannerOffset,
+      isAdFree,
+      adFreeRemainingMs,
+      startAdFreeWithReward,
+    }),
+    [trackInteraction, bannerOffset, isAdFree, adFreeRemainingMs, startAdFreeWithReward]
   );
 
   return <AdsContext.Provider value={value}>{children}</AdsContext.Provider>;

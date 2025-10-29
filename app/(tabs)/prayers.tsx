@@ -2,7 +2,8 @@ import { createHomeStyles, createItemStyles } from '../../assets/styles';
 import { useTheme, useSearch, useLanguage } from '../../hooks';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import { FlatList, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StatusBar, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllPrayers } from '../../sql/sqlite';
 import { useRouter } from 'expo-router';
@@ -107,6 +108,8 @@ export default function Prayers() {
       }}
       activeOpacity={0.6}
       style={itemStyles.card}>
+      {/* Glass blur background */}
+      <BlurView tint={isDark ? 'dark' : 'light'} intensity={isDark ? 50 : 30} style={StyleSheet.absoluteFillObject} />
       <View style={itemStyles.cardInner}>
         {/* Content */}
         <View style={itemStyles.content}>
@@ -165,7 +168,11 @@ export default function Prayers() {
             <FlatList
               data={sortedPrayers}
               renderItem={renderPrayerItem}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item, index) => {
+                const raw = (item as any).id ?? (item as any)._id;
+                const id = raw != null ? String(raw).trim() : '';
+                return id.length > 0 ? id : `prayer-${index}`;
+              }}
               style={homeStyles.todoList}
               contentContainerStyle={homeStyles.todoListContent}
               keyboardDismissMode="on-drag"

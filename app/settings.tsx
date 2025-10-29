@@ -14,17 +14,20 @@ import { ContactModal } from '../components/ContactModal';
 import { SubmitSongModal } from '../components/SubmitSongModal';
 import AboutCreditsModal from '../components/AboutCreditsModal';
 import { BrandTitle } from '~/components/BrandTitle';
+import { useAds } from '../ads/adsManager';
 
 export default function Settings() {
   const { colors, isDark, toggleTheme, brand, setBrand } = useTheme();
   const prefStyles = createPreferencesStyles(colors);
   const { fontSize } = useFontSize();
   const { language, setLanguage } = useLanguage();
+  const { isAdFree, adFreeRemainingMs, startAdFreeWithReward } = useAds();
   const [showFontSizeModal, setShowFontSizeModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showSubmitSongModal, setShowSubmitSongModal] = useState(false);
   const [showAboutCreditsModal, setShowAboutCreditsModal] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
   // Profile removed: no profile photo state
 
   const getFontSizeLabel = () => {
@@ -58,12 +61,19 @@ export default function Settings() {
       case 'facebook':
         return 'Strong Blue';
       case 'telegram':
-        return 'Gentle Blue';
-      case 'expressive':
-        return 'Expressive (M3)';
       default:
         return 'Gentle Blue';
     }
+  };
+
+  // Human-friendly remaining time for ad-free mode
+  const getAdFreeSubtitle = () => {
+    if (unlocking) return 'Preparing ad…';
+    if (isAdFree) {
+      const minutes = Math.ceil(adFreeRemainingMs / 60000);
+      return `Ad-free active: ~${minutes} min left`;
+    }
+    return 'Watch an ad to remove ads for 1 hour';
   };
 
   const handleLanguageToggle = () => {
@@ -177,19 +187,31 @@ export default function Settings() {
             />
 
             <View style={prefStyles.rowDivider} />
+            {/* Rewarded Ad unlock for temporary ad-free */}
+            <PreferenceRow
+              title="Ad-Free for 1 Hour"
+              subtitle={getAdFreeSubtitle()}
+              icon={isAdFree ? 'shield-checkmark-outline' : 'play-circle-outline'}
+              onPress={async () => {
+                if (unlocking || isAdFree) return;
+                try {
+                  setUnlocking(true);
+                  const ok = await startAdFreeWithReward();
+                  // If ok is false, we do nothing; ads remain active per requirements
+                } finally {
+                  setUnlocking(false);
+                }
+              }}
+            />
+            <View style={prefStyles.rowDivider} />
             {/* Color Theme row (brand palette) */}
             <PreferenceRow
               title="Color Theme"
               subtitle={getBrandLabel()}
               icon="color-palette-outline"
               onPress={() => {
-                // cycle through: facebook -> telegram -> expressive -> facebook
-                const next =
-                  brand === 'facebook'
-                    ? 'telegram'
-                    : brand === 'telegram'
-                      ? 'expressive'
-                      : 'facebook';
+                // cycle through the two options: facebook <-> telegram
+                const next = brand === 'facebook' ? 'telegram' : 'facebook';
                 setBrand(next as any);
               }}
             />

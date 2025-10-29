@@ -39,10 +39,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     (async () => {
       try {
         const v = await AsyncStorage.getItem(BRAND_KEY);
-        if (v === 'facebook' || v === 'telegram' || v === 'expressive') {
+        if (v === 'facebook' || v === 'telegram') {
           setBrandState(v as Brand);
-        } else if (v) {
-          // Fallback to telegram when deprecated brands are found
+        } else if (v === 'expressive') {
+          // Migrate deprecated value to telegram
           setBrandState('telegram');
           await AsyncStorage.setItem(BRAND_KEY, 'telegram');
         }
@@ -64,33 +64,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     accent: palette.accent ?? base.accent,
     highlight: base.highlight,
   };
-  // Spread brand-wide expressive tweaks to surfaces and borders when expressive is active
-  if (brand === 'expressive') {
-    const alpha = (hex: string, a: number) => {
-      const c = hex.replace('#', '');
-      const n = parseInt(
-        c.length === 3
-          ? c
-              .split('')
-              .map((ch) => ch + ch)
-              .join('')
-          : c,
-        16
-      );
-      const r = (n >> 16) & 255,
-        g = (n >> 8) & 255,
-        b = n & 255;
-      return `rgba(${r}, ${g}, ${b}, ${a})`;
-    };
-    colors.surface = isDark ? alpha(colors.primary, 0.12) : alpha(colors.primary, 0.06);
-    colors.card = isDark ? alpha(colors.primary, 0.16) : '#FFFFFF';
-    colors.border = isDark ? alpha(colors.primary, 0.35) : alpha(colors.primary, 0.22);
-    colors.divider = isDark ? alpha(colors.primary, 0.25) : alpha(colors.primary, 0.16);
-    colors.backgrounds = {
-      input: isDark ? alpha(colors.primary, 0.08) : '#F8F5FF',
-      editInput: isDark ? alpha(colors.primary, 0.12) : '#FFFFFF',
-    };
-  }
 
   const toggleTheme = () => {
     setThemeState((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
@@ -130,7 +103,7 @@ export const useTheme = (): ThemeContextType => {
 export type { ColorScheme } from './theme';
 
 // Brand palette support
-export type Brand = 'facebook' | 'telegram' | 'expressive';
+export type Brand = 'facebook' | 'telegram';
 
 const BRAND_KEY = 'uecfi.theme.brand';
 
@@ -149,12 +122,5 @@ const brandPalettes: Record<
     primaryLight: '#2AABEE',
     primaryDark: '#1B8FC5',
     accent: '#60C3EE',
-  },
-  expressive: {
-    // Material 3 expressive-inspired purple tones
-    primary: '#6750A4', // M3 primary 40
-    primaryLight: '#EADDFF', // on primary container tint
-    primaryDark: '#4F378B', // primary 30
-    accent: '#7D5260', // tertiary 40-ish for accents
   },
 };
