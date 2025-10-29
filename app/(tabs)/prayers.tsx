@@ -120,12 +120,17 @@ export default function Prayers() {
           </View>
           {item.category && (
             <View style={itemStyles.category}>
-              <Text style={itemStyles.categoryText}>{item.category.toUpperCase()}</Text>
+              <Text
+                style={[itemStyles.categoryText, { fontStyle: 'italic' }]}>
+                {item.category
+                  .toLowerCase()
+                  .replace(/\b\w/g, (c) => c.toUpperCase())}
+              </Text>
             </View>
           )}
 
           {getContent(item) && (
-            <Text style={itemStyles.itemText} numberOfLines={2}>
+            <Text style={itemStyles.itemText} numberOfLines={1}>
               {getContent(item)}
             </Text>
           )}

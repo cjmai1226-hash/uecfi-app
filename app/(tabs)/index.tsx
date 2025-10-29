@@ -77,12 +77,17 @@ export default function Songs() {
           </View>
           {item.category && (
             <View style={itemStyles.category}>
-              <Text style={itemStyles.categoryText}>{item.category.toUpperCase()}</Text>
+              <Text
+                style={[itemStyles.categoryText, { fontStyle: 'italic' }]}>
+                {item.category
+                  .toLowerCase()
+                  .replace(/\b\w/g, (c) => c.toUpperCase())}
+              </Text>
             </View>
           )}
 
           {item.content && (
-            <Text style={itemStyles.itemText} numberOfLines={2}>
+            <Text style={itemStyles.itemText} numberOfLines={1}>
               {item.content}
             </Text>
           )}

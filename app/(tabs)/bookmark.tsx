@@ -109,12 +109,17 @@ const Bookmark = () => {
           </View>
           {item.category && (
             <View style={itemStyles.category}>
-              <Text style={itemStyles.categoryText}>{item.category.toUpperCase()}</Text>
+              <Text
+                style={[itemStyles.categoryText, { fontStyle: 'italic' }]}>
+                {item.category
+                  .toLowerCase()
+                  .replace(/\b\w/g, (c) => c.toUpperCase())}
+              </Text>
             </View>
           )}
 
           {item.content && (
-            <Text style={itemStyles.itemText} numberOfLines={2}>
+            <Text style={itemStyles.itemText} numberOfLines={1}>
               {(() => {
                 const alt = (item as any).content1 as string | undefined;
                 return isAltLanguage && alt ? alt : item.content;

@@ -150,8 +150,11 @@ const PrayerDetailsScreen = () => {
           {/* Category */}
           {prayer.category && (
             <View style={itemStyles.category}>
-              <Text style={[itemStyles.categoryText, { fontSize: 12 }]}>
-                {prayer.category.toUpperCase()}
+              <Text
+                style={[itemStyles.categoryText, { fontSize: 12, fontStyle: 'italic' }]}>
+                {prayer.category
+                  .toLowerCase()
+                  .replace(/\b\w/g, (c) => c.toUpperCase())}
               </Text>
             </View>
           )}

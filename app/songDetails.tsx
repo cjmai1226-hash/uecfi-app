@@ -121,8 +121,11 @@ const SongDetailsScreen = () => {
           {/* Category */}
           {song.category && (
             <View style={itemStyles.category}>
-              <Text style={[itemStyles.categoryText, { fontSize: 12 }]}>
-                {song.category.toUpperCase()}
+              <Text
+                style={[itemStyles.categoryText, { fontSize: 12, fontStyle: 'italic' }]}>
+                {song.category
+                  .toLowerCase()
+                  .replace(/\b\w/g, (c) => c.toUpperCase())}
               </Text>
             </View>
           )}

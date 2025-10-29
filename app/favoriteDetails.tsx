@@ -210,8 +210,11 @@ const FavoriteDetailsScreen = () => {
             }}>
             {currentPrayer.category && (
               <View style={itemStyles.category}>
-                <Text style={[itemStyles.categoryText, { fontSize: 12 }]}>
-                  {currentPrayer.category.toUpperCase()}
+                <Text
+                  style={[itemStyles.categoryText, { fontSize: 12, fontStyle: 'italic' }]}>
+                  {currentPrayer.category
+                    .toLowerCase()
+                    .replace(/\b\w/g, (c) => c.toUpperCase())}
                 </Text>
               </View>
             )}
