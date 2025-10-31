@@ -16,6 +16,7 @@ import { SubmitSongModal } from '../components/sheets/SubmitSongModal';
 import AboutCreditsModal from '../components/sheets/AboutCreditsModal';
 import { BrandTitle } from '~/components/BrandTitle';
 import { useAds } from '../ads/adsManager';
+import Constants from 'expo-constants';
 
 export default function Settings() {
   const { colors, isDark, toggleTheme, brand, setBrand } = useTheme();
@@ -268,15 +269,22 @@ export default function Settings() {
               onPress={() => setShowContactModal(true)}
             />
 
-            <View style={prefStyles.rowDivider} />
-            <PreferenceRow
-              title="Version"
-              subtitle="2.0.0"
-              icon="information-circle-outline"
-              onPress={() => {}}
-            />
-
             <View style={{ height: 16 }} />
+
+            {/* Footer: App Version and Developer Credit */}
+            <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+              <Text style={{ color: colors.textMuted, fontSize: 12, marginBottom: 8 }}>
+                Version {Constants.nativeAppVersion ?? Constants.expoConfig?.version ?? '—'}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={{ color: colors.textMuted, fontSize: 12 }}>DEVELOP BY</Text>
+                <Image
+                  source={require('../assets/images/developer-icon.png')}
+                  style={{ width: 20, height: 20, borderRadius: 3 }}
+                />
+                <Text style={{ color: colors.textMuted, fontSize: 12 }}>Dev_Christian</Text>
+              </View>
+            </View>
           </ScrollView>
         </SafeAreaView>
       </AnimatedPage>
