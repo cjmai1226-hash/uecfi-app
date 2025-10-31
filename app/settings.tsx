@@ -8,11 +8,12 @@ import { useState } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 // AppBackground removed; using plain View wrappers
 import { AnimatedPage } from '../components/AnimatedPage';
-import { FontSizeModal } from '../components/FontSizeModal';
+import { FontSizeModal } from '../components/sheets/FontSizeModal';
 import { TermsModal } from '../components/TermsModal';
-import { ContactModal } from '../components/ContactModal';
-import { SubmitSongModal } from '../components/SubmitSongModal';
-import AboutCreditsModal from '../components/AboutCreditsModal';
+import { ContactModal } from '../components/sheets/ContactModal';
+import { DataSourceSheet } from '../components/sheets/DataSourceSheet';
+import { SubmitSongModal } from '../components/sheets/SubmitSongModal';
+import AboutCreditsModal from '../components/sheets/AboutCreditsModal';
 import { BrandTitle } from '~/components/BrandTitle';
 import { useAds } from '../ads/adsManager';
 
@@ -27,6 +28,7 @@ export default function Settings() {
   const [showContactModal, setShowContactModal] = useState(false);
   const [showSubmitSongModal, setShowSubmitSongModal] = useState(false);
   const [showAboutCreditsModal, setShowAboutCreditsModal] = useState(false);
+  const [showDataSourceSheet, setShowDataSourceSheet] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   // Profile removed: no profile photo state
 
@@ -242,7 +244,7 @@ export default function Settings() {
               title="Data Source"
               subtitle="View and manage data sources"
               icon="cloud-offline-outline"
-              onPress={() => router.push('/dataSource')}
+              onPress={() => setShowDataSourceSheet(true)}
             />
             <View style={prefStyles.rowDivider} />
             <PreferenceRow
@@ -294,6 +296,11 @@ export default function Settings() {
       <AboutCreditsModal
         visible={showAboutCreditsModal}
         onClose={() => setShowAboutCreditsModal(false)}
+      />
+
+      <DataSourceSheet
+        visible={showDataSourceSheet}
+        onClose={() => setShowDataSourceSheet(false)}
       />
     </View>
   );

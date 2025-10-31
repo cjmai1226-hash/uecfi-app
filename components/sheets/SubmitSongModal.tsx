@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, Modal, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../hooks';
+import { useTheme } from '../../hooks';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { addSubmission } from '../firebase/firebase';
-import { createPreferencesStyles } from '../assets/styles';
+import { addSubmission } from '../../firebase/firebase';
+import { createBottomSheetStyles } from '../../assets/styles';
+import { BottomSheetModal, BottomSheetBackdrop, BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 
 interface SubmitSongModalProps {
   visible: boolean;
@@ -13,7 +14,9 @@ interface SubmitSongModalProps {
 
 export const SubmitSongModal: React.FC<SubmitSongModalProps> = ({ visible, onClose }) => {
   const { colors } = useTheme();
-  const prefStyles = createPreferencesStyles(colors);
+  const sheetStyles = createBottomSheetStyles(colors);
+  const sheetRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => ['70%', '95%'], []);
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [content, setContent] = useState('');
@@ -99,72 +102,58 @@ export const SubmitSongModal: React.FC<SubmitSongModalProps> = ({ visible, onClo
     }
   };
 
+  useEffect(() => {
+    if (visible) {
+      sheetRef.current?.present();
+    } else {
+      sheetRef.current?.dismiss();
+    }
+  }, [visible]);
+
   return (
-    <Modal animationType="slide" transparent={false} visible={visible} onRequestClose={handleClose}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        {/* Header */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            backgroundColor: colors.background,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-          }}>
-          <TouchableOpacity
-            onPress={handleClose}
-            style={{
-              marginRight: 16,
-              padding: 8,
-            }}>
-            <Ionicons name="close" size={24} color={colors.text} />
-          </TouchableOpacity>
-
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '800',
-              color: colors.text,
-              flex: 1,
-              textAlign: 'left',
-            }}>
-            Submit New Song
-          </Text>
-
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={isSubmitting || !isValid}
-            style={{
-              backgroundColor: !isValid || isSubmitting ? colors.border : colors.primary,
-              paddingHorizontal: 16,
-              paddingVertical: 8,
-              borderRadius: 20,
-            }}>
-            <Text
-              style={{
-                color: '#ffffff',
-                fontWeight: '600',
-                fontSize: 14,
-              }}>
-              {isSubmitting ? 'Submitting...' : 'Submit'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Content */}
-        <ScrollView
+    <BottomSheetModal
+      ref={sheetRef}
+      index={0}
+      snapPoints={snapPoints}
+      enablePanDownToClose
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      onDismiss={handleClose}
+      backdropComponent={(props) => (
+        <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />
+      )}
+      handleIndicatorStyle={{ backgroundColor: colors.border }}
+      backgroundStyle={{ backgroundColor: colors.background }}
+    >
+      <SafeAreaView edges={['bottom']} style={{ flex: 1, backgroundColor: colors.background }}>
+        <KeyboardAvoidingView
           style={{ flex: 1 }}
-          contentContainerStyle={{
-            padding: 16,
-            paddingBottom: 40,
-          }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled">
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={8}
+        >
+          {/* Content */}
+          <BottomSheetScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 100, flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+            automaticallyAdjustKeyboardInsets>
+          {/* Small title row */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 2,
+              paddingTop: 2,
+              paddingBottom: 6,
+            }}>
+            <Ionicons name="musical-notes-outline" size={18} color={colors.textMuted} style={{ marginRight: 8 }} />
+            <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text }}>Submit New Song</Text>
+          </View>
           {/* Composer intro card */}
-          <View style={prefStyles.groupCard}>
-            <View style={prefStyles.row}>
+          <View style={[sheetStyles.groupCard, { marginTop: 0 }]}>
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text
                   style={{ fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 4 }}>
@@ -179,14 +168,14 @@ export const SubmitSongModal: React.FC<SubmitSongModalProps> = ({ visible, onClo
           </View>
 
           {/* Form group */}
-          <View style={[prefStyles.groupCard, { marginTop: 12 }]}>
+          <View style={[sheetStyles.groupCard, { marginTop: 8 }]}> 
             {/* Title */}
-            <View style={prefStyles.row}>
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>
                   Song Title *
                 </Text>
-                <TextInput
+                <BottomSheetTextInput
                   value={title}
                   onChangeText={setTitle}
                   placeholder="Enter the song title"
@@ -204,15 +193,15 @@ export const SubmitSongModal: React.FC<SubmitSongModalProps> = ({ visible, onClo
                 />
               </View>
             </View>
-            <View style={prefStyles.rowDivider} />
+            <View style={sheetStyles.rowDivider} />
 
             {/* Author */}
-            <View style={prefStyles.row}>
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>
                   Author/Composer *
                 </Text>
-                <TextInput
+                <BottomSheetTextInput
                   value={author}
                   onChangeText={setAuthor}
                   placeholder="Enter the author or composer name"
@@ -233,13 +222,13 @@ export const SubmitSongModal: React.FC<SubmitSongModalProps> = ({ visible, onClo
           </View>
 
           {/* Lyrics group */}
-          <View style={[prefStyles.groupCard, { marginTop: 12 }]}>
-            <View style={prefStyles.row}>
+          <View style={[sheetStyles.groupCard, { marginTop: 8 }]}> 
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>
                   Lyrics/Content *
                 </Text>
-                <TextInput
+                <BottomSheetTextInput
                   value={content}
                   onChangeText={setContent}
                   placeholder="Enter the song lyrics or content..."
@@ -265,41 +254,26 @@ export const SubmitSongModal: React.FC<SubmitSongModalProps> = ({ visible, onClo
               </View>
             </View>
           </View>
-
-          {/* Guidelines */}
-          <View style={[prefStyles.groupCard, { marginTop: 12 }]}>
-            <View style={prefStyles.row}>
-              <Ionicons
-                name="information-circle-outline"
-                size={18}
-                color={colors.textMuted}
-                style={{ marginRight: 8 }}
-              />
-              <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text }}>
-                Submission Guidelines
+          {/* Actions */}
+          <View style={{ marginTop: 16 }}>
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={isSubmitting || !isValid}
+              style={{
+                backgroundColor: !isValid || isSubmitting ? colors.border : colors.primary,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                borderRadius: 12,
+                alignItems: 'center',
+              }}>
+              <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 16 }}>
+                {isSubmitting ? 'Submitting...' : 'Submit'}
               </Text>
-            </View>
-            <View style={prefStyles.rowDivider} />
-            <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
-              <Text
-                style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18, marginBottom: 4 }}>
-                • Ensure the song is appropriate for worship
-              </Text>
-              <Text
-                style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18, marginBottom: 4 }}>
-                • Provide accurate author/composer information
-              </Text>
-              <Text
-                style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18, marginBottom: 4 }}>
-                • Include complete lyrics with proper formatting
-              </Text>
-              <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18 }}>
-                • Submissions will be reviewed before publication
-              </Text>
-            </View>
+            </TouchableOpacity>
           </View>
-        </ScrollView>
+        </BottomSheetScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
-    </Modal>
+    </BottomSheetModal>
   );
 };

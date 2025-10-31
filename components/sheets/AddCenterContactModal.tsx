@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, Modal, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useTheme } from '../hooks';
-import { createPreferencesStyles } from '../assets/styles';
-import { addCentroContact } from '../firebase/firebase';
+import { useTheme } from '../../hooks';
+import { createBottomSheetStyles } from '../../assets/styles';
+import { addCentroContact } from '../../firebase/firebase';
+import { BottomSheetModal, BottomSheetBackdrop, BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 
 export type CenterContactForm = {
   centerName: string;
@@ -27,7 +28,9 @@ const AddCenterContactModal: React.FC<AddCenterContactModalProps> = ({
   centerAddress,
 }) => {
   const { colors } = useTheme();
-  const prefStyles = createPreferencesStyles(colors);
+  const sheetStyles = createBottomSheetStyles(colors);
+  const sheetRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => ['65%', '90%'], []);
 
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
@@ -66,43 +69,44 @@ const AddCenterContactModal: React.FC<AddCenterContactModalProps> = ({
     }
   };
 
-  return (
-    <Modal animationType="slide" transparent={false} visible={visible} onRequestClose={handleClose}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        {/* Header */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            backgroundColor: colors.background,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-          }}>
-          <TouchableOpacity onPress={handleClose} style={{ marginRight: 16, padding: 8 }}>
-            <Ionicons name="close" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text, flex: 1 }}>
-            Add Center Contact
-          </Text>
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={!isValid}
-            style={{
-              backgroundColor: !isValid ? colors.border : colors.primary,
-              paddingHorizontal: 16,
-              paddingVertical: 8,
-              borderRadius: 20,
-            }}>
-            <Text style={{ color: '#fff', fontWeight: '600' }}>Save</Text>
-          </TouchableOpacity>
-        </View>
+  useEffect(() => {
+    if (visible) {
+      sheetRef.current?.present();
+    } else {
+      sheetRef.current?.dismiss();
+    }
+  }, [visible]);
 
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+  return (
+    <BottomSheetModal
+      ref={sheetRef}
+      index={0}
+      snapPoints={snapPoints}
+      enablePanDownToClose
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      onDismiss={handleClose}
+      backdropComponent={(props) => (
+        <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />
+      )}
+      handleIndicatorStyle={{ backgroundColor: colors.border }}
+      backgroundStyle={{ backgroundColor: colors.background }}
+    >
+      <SafeAreaView edges={['bottom']} style={{ flex: 1, backgroundColor: colors.background }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={8}
+        >
+          <BottomSheetScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 80, flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+            automaticallyAdjustKeyboardInsets>
           {/* Intro */}
-          <View style={prefStyles.groupCard}>
-            <View style={prefStyles.row}>
+          <View style={[sheetStyles.groupCard, { marginTop: 0 }]}>
+            <View style={sheetStyles.row}>
               <Ionicons
                 name="people-outline"
                 size={18}
@@ -122,8 +126,8 @@ const AddCenterContactModal: React.FC<AddCenterContactModalProps> = ({
           </View>
 
           {/* Center (read-only) */}
-          <View style={[prefStyles.groupCard, { marginTop: 12 }]}>
-            <View style={prefStyles.row}>
+          <View style={[sheetStyles.groupCard, { marginTop: 8 }]}> 
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>Center</Text>
                 <View
@@ -139,15 +143,15 @@ const AddCenterContactModal: React.FC<AddCenterContactModalProps> = ({
                 </View>
               </View>
             </View>
-            <View style={prefStyles.rowDivider} />
+            <View style={sheetStyles.rowDivider} />
 
             {/* Name */}
-            <View style={prefStyles.row}>
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>
                   Contact Name *
                 </Text>
-                <TextInput
+                <BottomSheetTextInput
                   value={name}
                   onChangeText={setName}
                   placeholder="Enter full name"
@@ -165,15 +169,15 @@ const AddCenterContactModal: React.FC<AddCenterContactModalProps> = ({
                 />
               </View>
             </View>
-            <View style={prefStyles.rowDivider} />
+            <View style={sheetStyles.rowDivider} />
 
             {/* Role */}
-            <View style={prefStyles.row}>
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>
                   Role (optional)
                 </Text>
-                <TextInput
+                <BottomSheetTextInput
                   value={role}
                   onChangeText={setRole}
                   placeholder="e.g., Center Officer, Coordinator"
@@ -191,15 +195,15 @@ const AddCenterContactModal: React.FC<AddCenterContactModalProps> = ({
                 />
               </View>
             </View>
-            <View style={prefStyles.rowDivider} />
+            <View style={sheetStyles.rowDivider} />
 
             {/* Phone */}
-            <View style={prefStyles.row}>
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>
                   Phone (optional)
                 </Text>
-                <TextInput
+                <BottomSheetTextInput
                   value={phone}
                   onChangeText={setPhone}
                   placeholder="e.g., +63 912 345 6789"
@@ -218,13 +222,31 @@ const AddCenterContactModal: React.FC<AddCenterContactModalProps> = ({
                 />
               </View>
             </View>
-            <View style={prefStyles.rowDivider} />
+            <View style={sheetStyles.rowDivider} />
 
             {/* Email and Notes removed per new requirements */}
           </View>
-        </ScrollView>
+
+          {/* Actions */}
+          <View style={{ marginTop: 16 }}>
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={!isValid}
+              style={{
+                backgroundColor: !isValid ? colors.border : colors.primary,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                borderRadius: 12,
+                alignItems: 'center',
+              }}>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Save</Text>
+            </TouchableOpacity>
+            {/* Optional: leave sheet closable via pan/backdrop; header removed per request */}
+          </View>
+          </BottomSheetScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
-    </Modal>
+    </BottomSheetModal>
   );
 };
 

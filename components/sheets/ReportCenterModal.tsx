@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, Modal, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useTheme } from '../hooks';
-import { createPreferencesStyles } from '../assets/styles';
+import { useTheme } from '../../hooks';
+import { createBottomSheetStyles } from '../../assets/styles';
 import { useRouter } from 'expo-router';
-import { addCentroReport } from '../firebase/firebase';
+import { addCentroReport } from '../../firebase/firebase';
+import { BottomSheetModal, BottomSheetBackdrop, BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 
 export type ReportCenterForm = {
   centerName: string;
@@ -39,7 +40,9 @@ const ReportCenterModal: React.FC<ReportCenterModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const router = useRouter();
-  const prefStyles = createPreferencesStyles(colors);
+  const sheetStyles = createBottomSheetStyles(colors);
+  const sheetRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => ['70%', '95%'], []);
 
   const [centerName] = useState(initialValues.centerName ?? ''); // read-only per request
   const [address, setAddress] = useState(initialValues.address ?? '');
@@ -167,44 +170,45 @@ const ReportCenterModal: React.FC<ReportCenterModalProps> = ({
     }
   };
 
-  return (
-    <Modal animationType="slide" transparent={false} visible={visible} onRequestClose={handleClose}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        {/* Header */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            backgroundColor: colors.background,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-          }}>
-          <TouchableOpacity onPress={handleClose} style={{ marginRight: 16, padding: 8 }}>
-            <Ionicons name="close" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text, flex: 1 }}>
-            Report Center Location
-          </Text>
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={!(isValid && isDirty)}
-            style={{
-              backgroundColor: !(isValid && isDirty) ? colors.border : colors.primary,
-              paddingHorizontal: 16,
-              paddingVertical: 8,
-              borderRadius: 20,
-            }}>
-            <Text style={{ color: '#fff', fontWeight: '600' }}>Submit</Text>
-          </TouchableOpacity>
-        </View>
+  useEffect(() => {
+    if (visible) {
+      sheetRef.current?.present();
+    } else {
+      sheetRef.current?.dismiss();
+    }
+  }, [visible]);
 
-        {/* Content */}
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
-          {/* Info */}
-          <View style={prefStyles.groupCard}>
-            <View style={prefStyles.row}>
+  return (
+    <BottomSheetModal
+      ref={sheetRef}
+      index={0}
+      snapPoints={snapPoints}
+      enablePanDownToClose
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      onDismiss={handleClose}
+      backdropComponent={(props) => (
+        <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />
+      )}
+      handleIndicatorStyle={{ backgroundColor: colors.border }}
+      backgroundStyle={{ backgroundColor: colors.background }}
+    >
+      <SafeAreaView edges={['bottom']} style={{ flex: 1, backgroundColor: colors.background }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={8}
+        >
+          {/* Content */}
+          <BottomSheetScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 100, flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+            automaticallyAdjustKeyboardInsets>
+          {/* Info
+          <View style={sheetStyles.groupCard}>
+            <View style={sheetStyles.row}>
               <Ionicons
                 name="pin-outline"
                 size={18}
@@ -222,12 +226,12 @@ const ReportCenterModal: React.FC<ReportCenterModalProps> = ({
                 </Text>
               </View>
             </View>
-          </View>
+          </View> */}
 
           {/* Form */}
-          <View style={[prefStyles.groupCard, { marginTop: 12 }]}>
+          <View style={[sheetStyles.groupCard, { marginTop: 0 }]}> 
             {/* Center (read-only/disabled) */}
-            <View style={prefStyles.row}>
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>Center</Text>
                 <View
@@ -246,13 +250,13 @@ const ReportCenterModal: React.FC<ReportCenterModalProps> = ({
                 </Text>
               </View>
             </View>
-            <View style={prefStyles.rowDivider} />
+            <View style={sheetStyles.rowDivider} />
 
             {/* Address */}
-            <View style={prefStyles.row}>
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>Address *</Text>
-                <TextInput
+                <BottomSheetTextInput
                   value={address}
                   onChangeText={setAddress}
                   placeholder="Enter the complete address"
@@ -274,10 +278,10 @@ const ReportCenterModal: React.FC<ReportCenterModalProps> = ({
                 />
               </View>
             </View>
-            <View style={prefStyles.rowDivider} />
+            <View style={sheetStyles.rowDivider} />
 
             {/* District (disabled) */}
-            <View style={prefStyles.row}>
+            {/* <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>
                   District *
@@ -304,10 +308,10 @@ const ReportCenterModal: React.FC<ReportCenterModalProps> = ({
                 </Text>
               </View>
             </View>
-            <View style={prefStyles.rowDivider} />
+            <View style={sheetStyles.rowDivider} /> */}
 
             {/* Status */}
-            <View style={prefStyles.row}>
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>Status *</Text>
                 <View style={{ flexDirection: 'row' }}>
@@ -325,22 +329,22 @@ const ReportCenterModal: React.FC<ReportCenterModalProps> = ({
                         marginRight: 8,
                       }}>
                       <Text style={{ color: status === opt ? '#fff' : colors.text }}>
-                        {opt.toUpperCase()}
+                        {opt.slice(0, 1).toUpperCase() + opt.slice(1)}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               </View>
             </View>
-            <View style={prefStyles.rowDivider} />
+            <View style={sheetStyles.rowDivider} />
 
             {/* Optional GPS/coordinates */}
-            <View style={prefStyles.row}>
+            <View style={sheetStyles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: colors.text, marginBottom: 6 }}>
                   Maps (Latitude | Longitude)
                 </Text>
-                <TextInput
+                <BottomSheetTextInput
                   value={gpsLink}
                   onChangeText={setGpsLink}
                   placeholder="Paste coordinates e.g., 14.5995, 120.9842 or a Google Maps link"
@@ -407,13 +411,32 @@ const ReportCenterModal: React.FC<ReportCenterModalProps> = ({
                 </TouchableOpacity>
               </View>
             </View>
-            <View style={prefStyles.rowDivider} />
+            <View style={sheetStyles.rowDivider} />
 
-            {/* Notes removed per requirements */}
+            {/* Notes removed per requirements */
+            }
           </View>
-        </ScrollView>
+
+          {/* Actions */}
+          <View style={{ marginTop: 16 }}>
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={!(isValid && isDirty)}
+              style={{
+                backgroundColor: !(isValid && isDirty) ? colors.border : colors.primary,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                borderRadius: 12,
+                alignItems: 'center',
+              }}>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Submit</Text>
+            </TouchableOpacity>
+            {/* Sheet remains closable via pan/backdrop; header removed per request */}
+          </View>
+          </BottomSheetScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
-    </Modal>
+    </BottomSheetModal>
   );
 };
 

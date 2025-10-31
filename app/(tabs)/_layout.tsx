@@ -1,5 +1,4 @@
 import { View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   createMaterialTopTabNavigator,
   MaterialTopTabNavigationOptions,
@@ -10,7 +9,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme, useSearch } from '../../hooks';
 import { useAds } from '../../ads/adsManager';
 import { useEffect } from 'react';
-import { DynamicHeader } from '../../components/DynamicHeader';
+import { useNavigation } from 'expo-router';
 
 const { Navigator } = createMaterialTopTabNavigator();
 
@@ -25,14 +24,12 @@ const Layout = () => {
   const { colors } = useTheme();
   const { clearSearch } = useSearch();
   const { trackInteraction } = useAds();
+  const navigation = useNavigation();
 
   useEffect(() => {}, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.headerBackground }}>
-      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.headerBackground }}>
-        <DynamicHeader />
-      </SafeAreaView>
       <MaterialTopTabs
         screenOptions={{
           tabBarShowLabel: false,
@@ -54,7 +51,7 @@ const Layout = () => {
           tabBarPressColor: colors.surface,
           tabBarPressOpacity: 0.8,
         }}
-        screenListeners={{
+        screenListeners={({ route }) => ({
           tabPress: () => {
             // Count tab press as an interaction towards interstitial
             trackInteraction();
@@ -63,8 +60,18 @@ const Layout = () => {
             // Clear search when switching tabs so the new tab starts fresh
             clearSearch();
             trackInteraction();
+            // Update the Stack header title to reflect the active tab
+            const label = route.name === 'prayers'
+              ? 'Prayers'
+              : route.name === 'bookmark'
+              ? 'Bookmarks'
+              : route.name === 'centers'
+              ? 'Centers'
+              : 'Songs';
+            // This triggers a Stack header update; the custom header still renders DynamicHeader
+            navigation.setOptions({ headerTitle: label });
           },
-        }}>
+        })}>
         <MaterialTopTabs.Screen
           name="prayers"
           options={{

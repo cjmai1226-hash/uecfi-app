@@ -77,10 +77,10 @@ export interface ColorScheme {
 export type ThemeColors = ColorScheme;
 
 export const lightTheme: ThemeColors = {
-  // Telegram-inspired light theme
-  primary: '#229ED9', // Telegram blue
-  primaryLight: '#2AABEE', // lighter Telegram blue
-  primaryDark: '#1B8FC5', // darker Telegram blue
+  // Refined light theme with improved contrast and clearer layering
+  primary: '#229ED9', // brand blue
+  primaryLight: '#2AABEE', // lighter brand blue
+  primaryDark: '#1B8FC5', // darker brand blue
   titleStyle: {
     fontSize: 24,
     fontWeight: '700',
@@ -92,29 +92,30 @@ export const lightTheme: ThemeColors = {
   },
 
   // Secondary colors
-  secondary: '#34C759', // success green accent
-  secondaryLight: '#E8F6FD', // light blue background
+  secondary: '#34C759',
+  secondaryLight: '#EAF6FF',
   secondaryDark: '#1B8FC5',
 
-  // Background colors (slightly darker than pure white for softer contrast)
-  background: '#F4F8FB',
-  surface: '#F4F8FB', // light, airy surface
+  // Background colors
+  // Use a very light neutral background with white surfaces/cards for clear elevation cues
+  background: '#F7FAFC',
+  surface: '#FFFFFF',
   card: '#FFFFFF',
 
   // Background variants
   backgrounds: {
-    input: '#EEF3F7',
+    input: '#F1F5F9', // slate-100
     editInput: '#FFFFFF',
   },
 
   // Text colors
-  text: '#1E2A35',
-  textSecondary: '#5B7083',
-  textMuted: '#9AA7B2',
+  text: '#0F172A', // slate-900
+  textSecondary: '#334155', // slate-700
+  textMuted: '#64748B', // slate-500
 
   // Border and divider colors
-  border: '#E3EDF3',
-  divider: '#D9E2EA',
+  border: '#E2E8F0', // slate-200
+  divider: '#E5E7EB', // gray-200
   shadow: '#000000', // Black for shadows
 
   // Status colors
@@ -125,19 +126,19 @@ export const lightTheme: ThemeColors = {
 
   // Interactive colors
   accent: '#FFD166',
-  highlight: '#E8F6FD',
+  highlight: '#EFF6FF',
 
   // Header/Navigation colors
   headerBackground: '#FFFFFF',
   headerText: '#229ED9',
   tabActive: '#229ED9',
-  tabInactive: '#5B7083',
+  tabInactive: '#94A3B8', // slate-400
 
   // Status bar style (dark text on light background)
   statusBarStyle: 'dark-content',
 
   // Item text color for detail pages
-  itemText: '#1A237E',
+  itemText: '#1F2937', // gray-800
 
   // Font sizes
   fontSizes: {

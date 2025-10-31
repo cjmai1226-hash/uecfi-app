@@ -1,5 +1,7 @@
 import { Platform } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+// Use legacy API in SDK 54 to avoid deprecation warnings/errors from new File/Directory API
+// See: https://docs.expo.dev/versions/v54.0.0/sdk/filesystem/
+import * as FileSystem from 'expo-file-system/legacy';
 import * as SQLite from 'expo-sqlite';
 import { Asset } from 'expo-asset';
 
