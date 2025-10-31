@@ -104,6 +104,7 @@ const AddCenterContactModal: React.FC<AddCenterContactModalProps> = ({
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
             automaticallyAdjustKeyboardInsets>
+              
           {/* Intro */}
           <View style={[sheetStyles.groupCard, { marginTop: 0 }]}>
             <View style={sheetStyles.row}>

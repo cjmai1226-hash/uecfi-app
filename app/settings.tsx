@@ -130,7 +130,7 @@ export default function Settings() {
                 case 'moon-outline':
                 case 'sunny-outline':
                   return colors.warning; // mode toggle
-                case 'language-outline':
+                case 'globe-outline':
                   return colors.success; // language feels positive
                 case 'text-outline':
                   return colors.info; // informational setting
@@ -142,6 +142,9 @@ export default function Settings() {
                   return colors.success;
                 case 'mail-outline':
                   return colors.primary;
+                case 'cloud-outline':
+                case 'cloud-offline-outline':
+                  return colors.info;
                 default:
                   return colors.textMuted;
               }
@@ -171,6 +174,17 @@ export default function Settings() {
     </TouchableOpacity>
   );
 
+  const Section = ({ title, children }: { title?: string; children: React.ReactNode }) => (
+    <View style={{ marginTop: 6 }}>
+      {title ? (
+        <View style={prefStyles.section}>
+          <Text style={prefStyles.sectionTitle}>{title}</Text>
+        </View>
+      ) : null}
+      <View style={prefStyles.groupCard}>{children}</View>
+    </View>
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AnimatedPage>
@@ -180,96 +194,119 @@ export default function Settings() {
             <View style={prefStyles.header}>
               <BrandTitle label="Settings" size={24} />
             </View>
-            
-            {/* Rewarded Ad unlock for temporary ad-free */}
-            <PreferenceRow
-              title="Ad-Free for 1 Hour"
-              subtitle={getAdFreeSubtitle()}
-              icon={isAdFree ? 'shield-checkmark-outline' : 'play-circle-outline'}
-              onPress={async () => {
-                if (unlocking || isAdFree) return;
-                try {
-                  setUnlocking(true);
-                  const ok = await startAdFreeWithReward();
-                  // If ok is false, we do nothing; ads remain active per requirements
-                } finally {
-                  setUnlocking(false);
-                }
-              }}
-            />
-            <View style={prefStyles.rowDivider} />
-            {/* Preferences (plain rows) */}
-            <PreferenceRow
-              title="Prayer Language"
-              subtitle={getLanguageLabel()}
-              icon="language-outline"
-              onPress={handleLanguageToggle}
-            />
+            {/* Feature card: Ad-Free */}
+            <View style={prefStyles.item}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={async () => {
+                  if (unlocking || isAdFree) return;
+                  try {
+                    setUnlocking(true);
+                    await startAdFreeWithReward();
+                  } finally {
+                    setUnlocking(false);
+                  }
+                }}
+                style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={[prefStyles.iconArea, { marginRight: 14 }]}>
+                  <Ionicons
+                    name={isAdFree ? 'shield-checkmark-outline' : 'play-circle-outline'}
+                    size={22}
+                    color={isAdFree ? colors.success : colors.primary}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={prefStyles.itemTitle}>Ad-Free for 1 Hour</Text>
+                  <Text style={prefStyles.itemSubtitle}>{getAdFreeSubtitle()}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+              </TouchableOpacity>
+            </View>
 
-            <View style={prefStyles.rowDivider} />
+            {/* General Section */}
+            <Section title="General">
+              <PreferenceRow
+                title="Prayer Language"
+                subtitle={getLanguageLabel()}
+                icon="globe-outline"
+                onPress={handleLanguageToggle}
+              />
+              <View style={prefStyles.rowDivider} />
+              <PreferenceRow
+                title="Font Size"
+                subtitle={`Currently: ${getFontSizeLabel()}`}
+                icon="text-outline"
+                onPress={() => setShowFontSizeModal(true)}
+              />
+            </Section>
 
-            {/* Color Theme row (brand palette) */}
-            <PreferenceRow
-              title="Color Theme"
-              subtitle={getBrandLabel()}
-              icon="color-palette-outline"
-              onPress={() => {
-                // cycle through the two options: facebook <-> telegram
-                const next = brand === 'facebook' ? 'telegram' : 'facebook';
-                setBrand(next as any);
-              }}
-            />
-            <View style={prefStyles.rowDivider} />
-            <PreferenceRow
-              title={isDark ? 'Dark Mode' : 'Light Mode'}
-              subtitle={isDark ? 'Currently: Dark' : 'Currently: Light'}
-              icon={isDark ? 'moon-outline' : 'sunny-outline'}
-              onPress={toggleTheme}
-            />
-            <View style={prefStyles.rowDivider} />
-            <PreferenceRow
-              title="Font Size"
-              subtitle={`Currently: ${getFontSizeLabel()}`}
-              icon="text-outline"
-              onPress={() => setShowFontSizeModal(true)}
-            />
-            <View style={prefStyles.rowDivider} />
-            <PreferenceRow
-              title="Submit New Song"
-              subtitle="Contribute to our song collection"
-              icon="musical-notes-outline"
-              onPress={() => setShowSubmitSongModal(true)}
-            />
-            {/* Data Source Item */}
-            <PreferenceRow
-              title="Data Source"
-              subtitle="View and manage data sources"
-              icon="cloud-offline-outline"
-              onPress={() => setShowDataSourceSheet(true)}
-            />
-            <View style={prefStyles.rowDivider} />
-            <PreferenceRow
-              title="About & Credits"
-              subtitle="Dedication and Attribution"
-              icon="ribbon-outline"
-              onPress={() => setShowAboutCreditsModal(true)}
-            />
-            <View style={prefStyles.rowDivider} />
-            <PreferenceRow
-              title="Terms and Agreement"
-              subtitle="View terms and conditions"
-              icon="shield-checkmark-outline"
-              onPress={() => setShowTermsModal(true)}
-            />
-            <View style={prefStyles.rowDivider} />
-            <PreferenceRow
-              title="Contact Us"
-              subtitle="Get help and support"
-              icon="mail-outline"
-              onPress={() => setShowContactModal(true)}
-            />
+            {/* Appearance Section */}
+            <Section title="Appearance">
+              <PreferenceRow
+                title="Color Theme"
+                subtitle={getBrandLabel()}
+                icon="color-palette-outline"
+                onPress={() => {
+                  const next = brand === 'facebook' ? 'telegram' : 'facebook';
+                  setBrand(next as any);
+                }}
+              />
+              <View style={prefStyles.rowDivider} />
+              <PreferenceRow
+                title="Dark Mode"
+                subtitle={isDark ? 'On' : 'Off'}
+                icon={isDark ? 'moon-outline' : 'sunny-outline'}
+                showSwitch
+                switchValue={isDark}
+                onSwitchChange={toggleTheme}
+              />
+            </Section>
 
-            <View style={{ height: 16 }} />
+            {/* Data Section */}
+            <Section title="Data">
+              <PreferenceRow
+                title="Data Source"
+                subtitle="View and manage data sources"
+                icon="cloud-outline"
+                onPress={() => setShowDataSourceSheet(true)}
+              />
+            </Section>
+
+            {/* Contributions */}
+            <Section title="Contribute">
+              <PreferenceRow
+                title="Submit New Song"
+                subtitle="Contribute to our song collection"
+                icon="musical-notes-outline"
+                onPress={() => setShowSubmitSongModal(true)}
+              />
+            </Section>
+
+            {/* About */}
+            <Section title="About">
+              <PreferenceRow
+                title="About & Credits"
+                subtitle="Dedication and Attribution"
+                icon="information-circle-outline"
+                onPress={() => setShowAboutCreditsModal(true)}
+              />
+              <View style={prefStyles.rowDivider} />
+              <PreferenceRow
+                title="Terms and Agreement"
+                subtitle="View terms and conditions"
+                icon="document-text-outline"
+                onPress={() => setShowTermsModal(true)}
+              />
+              <View style={prefStyles.rowDivider} />
+              <PreferenceRow
+                title="Contact Us"
+                subtitle="Get help and support"
+                icon="mail-outline"
+                onPress={() => setShowContactModal(true)}
+              />
+            </Section>
+
+            <View style={{ height: 10 }} />
 
             {/* Footer: App Version and Developer Credit */}
             <View style={{ paddingVertical: 16, alignItems: 'center' }}>

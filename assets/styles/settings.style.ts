@@ -23,8 +23,8 @@ export const createPreferencesStyles = (colors: ColorScheme) =>
       letterSpacing: 0.2,
     },
     section: {
-      marginTop: 24,
-      marginBottom: 8,
+      marginTop: 16,
+      marginBottom: 6,
       paddingHorizontal: 24,
     },
     sectionTitle: {
@@ -38,12 +38,12 @@ export const createPreferencesStyles = (colors: ColorScheme) =>
     item: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 16,
-      paddingHorizontal: 18,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
       backgroundColor: colors.card,
       borderRadius: 16,
       marginHorizontal: 16,
-      marginVertical: 6,
+      marginVertical: 4,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.06,
@@ -55,7 +55,7 @@ export const createPreferencesStyles = (colors: ColorScheme) =>
       transitionDuration: '150ms',
     },
     groupCard: {
-      marginTop: 12,
+      marginTop: 6,
       marginHorizontal: 16,
       borderRadius: 16,
       backgroundColor: colors.card,
@@ -71,7 +71,7 @@ export const createPreferencesStyles = (colors: ColorScheme) =>
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 14,
+      paddingVertical: 12,
       paddingHorizontal: 16,
       backgroundColor: 'transparent',
     },
