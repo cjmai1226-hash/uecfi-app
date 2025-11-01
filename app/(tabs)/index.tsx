@@ -1,6 +1,6 @@
 import { createHomeStyles, createItemStyles } from '../../assets/styles';
 import { useTheme, useSearch } from '../../hooks';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { FlatList, StatusBar, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +19,57 @@ type Song = {
   content?: string;
   category?: string;
 };
+
+// Memoized row for a song item
+const SongRow = React.memo(
+  ({
+    item,
+    onPress,
+    itemStyles,
+    colors,
+    isDark,
+  }: {
+    item: Song;
+    onPress: () => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    itemStyles: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    colors: any;
+    isDark: boolean;
+  }) => (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.6} style={itemStyles.card}>
+      <BlurView tint={isDark ? 'dark' : 'light'} intensity={isDark ? 50 : 30} style={StyleSheet.absoluteFillObject} />
+      <View style={itemStyles.cardInner}>
+        {/* Content */}
+        <View style={itemStyles.content}>
+          <View style={itemStyles.titleRow}>
+            <Text style={itemStyles.title} numberOfLines={2}>
+              {item.title}
+            </Text>
+          </View>
+          {item.category && (
+            <View style={itemStyles.category}>
+              <Text style={[itemStyles.categoryText, { fontStyle: 'italic' }]}>
+                {item.category.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}
+              </Text>
+            </View>
+          )}
+
+          {item.content && (
+            <Text style={itemStyles.itemText} numberOfLines={1}>
+              {item.content}
+            </Text>
+          )}
+        </View>
+
+        {/* Arrow indicator */}
+        <View style={itemStyles.arrow}>
+          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+        </View>
+      </View>
+    </TouchableOpacity>
+  )
+);
 
 export default function Songs() {
   const { colors, isDark, brand } = useTheme();
@@ -51,55 +102,36 @@ export default function Songs() {
   // First-time loading: show an overlay loader only if there is no cached data yet
   const isFirstTimeLoading = isLoading && (!Array.isArray(songs) || songs.length === 0);
 
-  const filteredSongs = songs.filter((song) => {
-    if (!query) return true;
-    const title = (song.title || '').toLowerCase();
-    const category = (song.category || '').toLowerCase();
-    return title.includes(query) || category.includes(query);
-  });
+  const filteredSongs = useMemo(() => {
+    return songs.filter((song) => {
+      if (!query) return true;
+      const title = (song.title || '').toLowerCase();
+      const category = (song.category || '').toLowerCase();
+      return title.includes(query) || category.includes(query);
+    });
+  }, [songs, query]);
 
-  const renderSongItem = ({ item }: { item: Song }) => (
-    <TouchableOpacity
-      onPress={() => {
-        setSearchQuery('');
-        router.push({ pathname: '/songDetails', params: { song: JSON.stringify(item) } });
-      }}
-      activeOpacity={0.6}
-      style={itemStyles.card}>
-      <BlurView tint={isDark ? 'dark' : 'light'} intensity={isDark ? 50 : 30} style={StyleSheet.absoluteFillObject} />
-      <View style={itemStyles.cardInner}>
-        {/* Content */}
-        <View style={itemStyles.content}>
-          <View style={itemStyles.titleRow}>
-            <Text style={itemStyles.title} numberOfLines={2}>
-              {item.title}
-            </Text>
-          </View>
-          {item.category && (
-            <View style={itemStyles.category}>
-              <Text
-                style={[itemStyles.categoryText, { fontStyle: 'italic' }]}>
-                {item.category
-                  .toLowerCase()
-                  .replace(/\b\w/g, (c) => c.toUpperCase())}
-              </Text>
-            </View>
-          )}
-
-          {item.content && (
-            <Text style={itemStyles.itemText} numberOfLines={1}>
-              {item.content}
-            </Text>
-          )}
-        </View>
-
-        {/* Arrow indicator */}
-        <View style={itemStyles.arrow}>
-          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-        </View>
-      </View>
-    </TouchableOpacity>
+  const renderSongItem = useCallback(
+    ({ item }: { item: Song }) => (
+      <SongRow
+        item={item}
+        itemStyles={itemStyles}
+        colors={colors}
+        isDark={isDark}
+        onPress={() => {
+          setSearchQuery('');
+          router.push({ pathname: '/songDetails', params: { song: JSON.stringify(item) } });
+        }}
+      />
+    ),
+    [colors, isDark, itemStyles, router, setSearchQuery]
   );
+
+  const keyExtractor = useCallback((item: Song, index: number) => {
+    const raw = (item as any).id ?? (item as any)._id;
+    const id = raw != null ? String(raw).trim() : '';
+    return id.length > 0 ? id : `song-${index}`;
+  }, []);
 
   const EmptyState = () => (
     <View style={homeStyles.emptyContainer}>
@@ -128,17 +160,17 @@ export default function Songs() {
             <FlatList
               data={filteredSongs}
               renderItem={renderSongItem}
-              keyExtractor={(item, index) => {
-                const raw = (item as any).id ?? (item as any)._id;
-                const id = raw != null ? String(raw).trim() : '';
-                return id.length > 0 ? id : `song-${index}`;
-              }}
+              keyExtractor={keyExtractor}
+              initialNumToRender={12}
+              maxToRenderPerBatch={8}
+              windowSize={5}
+              removeClippedSubviews
+              updateCellsBatchingPeriod={50}
               style={homeStyles.todoList}
               contentContainerStyle={homeStyles.todoListContent}
               keyboardDismissMode="on-drag"
               keyboardShouldPersistTaps="handled"
               ListEmptyComponent={<EmptyState />}
-              // Pull-to-refresh removed; use Data Source page to refresh
             />
           </SafeAreaView>
         </View>

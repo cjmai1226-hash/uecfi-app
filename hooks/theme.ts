@@ -132,7 +132,7 @@ export const lightTheme: ThemeColors = {
   headerBackground: '#FFFFFF',
   headerText: '#229ED9',
   tabActive: '#229ED9',
-  tabInactive: '#94A3B8', // slate-400
+  tabInactive: '#000000ff', // slate-400
 
   // Status bar style (dark text on light background)
   statusBarStyle: 'dark-content',
