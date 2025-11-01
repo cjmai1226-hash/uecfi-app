@@ -79,6 +79,27 @@ export default function Settings() {
     return 'Watch an ad to remove ads for 1 hour';
   };
 
+  // iOS-like colored icon pills
+  const iconPalette = (icon: string): { fg: string; bg: string } => {
+    const map: Record<string, string> = {
+      'color-palette-outline': colors.accent,
+      'moon-outline': colors.warning,
+      'sunny-outline': colors.warning,
+      'globe-outline': colors.success,
+      'text-outline': colors.info,
+      'musical-notes-outline': colors.error,
+      'information-circle-outline': colors.info,
+      'shield-checkmark-outline': colors.success,
+      'play-circle-outline': colors.primary,
+      'mail-outline': colors.primary,
+      'cloud-outline': colors.info,
+      'cloud-offline-outline': colors.info,
+      'document-text-outline': colors.primary,
+    };
+    const fg = map[icon] ?? colors.textMuted;
+    return { fg, bg: hexToRgba(fg, 0.15) };
+  };
+
   const handleLanguageToggle = () => {
     const newLanguage = language === 'ilo' ? 'tag' : 'ilo';
     setLanguage(newLanguage);
@@ -111,7 +132,9 @@ export default function Settings() {
       <View
         style={[
           prefStyles.iconArea,
-          imageUri ? { borderWidth: 2, borderColor: colors.primary, backgroundColor: '#fff' } : {},
+          imageUri
+            ? { borderWidth: 2, borderColor: colors.primary, backgroundColor: '#fff' }
+      : { backgroundColor: iconPalette(icon).bg },
         ]}>
         {imageUri ? (
           <Image
@@ -122,33 +145,8 @@ export default function Settings() {
         ) : (
           <Ionicons
             name={icon as any}
-            size={22}
-            color={(() => {
-              switch (icon) {
-                case 'color-palette-outline':
-                  return colors.accent; // highlight theme control
-                case 'moon-outline':
-                case 'sunny-outline':
-                  return colors.warning; // mode toggle
-                case 'globe-outline':
-                  return colors.success; // language feels positive
-                case 'text-outline':
-                  return colors.info; // informational setting
-                case 'musical-notes-outline':
-                  return colors.error; // stands out (action)
-                case 'information-circle-outline':
-                  return colors.info;
-                case 'shield-checkmark-outline':
-                  return colors.success;
-                case 'mail-outline':
-                  return colors.primary;
-                case 'cloud-outline':
-                case 'cloud-offline-outline':
-                  return colors.info;
-                default:
-                  return colors.textMuted;
-              }
-            })()}
+            size={18}
+            color={iconPalette(icon).fg}
           />
         )}
       </View>
@@ -176,11 +174,8 @@ export default function Settings() {
 
   const Section = ({ title, children }: { title?: string; children: React.ReactNode }) => (
     <View style={{ marginTop: 6 }}>
-      {title ? (
-        <View style={prefStyles.section}>
-          <Text style={prefStyles.sectionTitle}>{title}</Text>
-        </View>
-      ) : null}
+      {/* iOS Settings: hide section titles */}
+      <View style={prefStyles.section} />
       <View style={prefStyles.groupCard}>{children}</View>
     </View>
   );
@@ -208,11 +203,22 @@ export default function Settings() {
                   }
                 }}
                 style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View style={[prefStyles.iconArea, { marginRight: 14 }]}>
+                <View
+                  style={[
+                    prefStyles.iconArea,
+                    {
+                      marginRight: 14,
+                      backgroundColor: iconPalette(
+                        isAdFree ? 'shield-checkmark-outline' : 'play-circle-outline'
+                      ).bg,
+                    },
+                  ]}>
                   <Ionicons
                     name={isAdFree ? 'shield-checkmark-outline' : 'play-circle-outline'}
-                    size={22}
-                    color={isAdFree ? colors.success : colors.primary}
+                    size={18}
+                    color={iconPalette(
+                      isAdFree ? 'shield-checkmark-outline' : 'play-circle-outline'
+                    ).fg}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -326,6 +332,8 @@ export default function Settings() {
         </SafeAreaView>
       </AnimatedPage>
 
+      {/* Floating search removed from Settings */}
+
       {/* Modals placed directly under AppBackground so they overlay correctly */}
       <FontSizeModal visible={showFontSizeModal} onClose={() => setShowFontSizeModal(false)} />
 
@@ -350,3 +358,16 @@ export default function Settings() {
     </View>
   );
 }
+
+// Helpers – iOS-like colored icon pills
+function hexToRgba(hex: string, alpha: number) {
+  const sanitized = hex.replace('#', '');
+  const bigint = parseInt(sanitized.length === 3
+    ? sanitized.split('').map((c) => c + c).join('')
+    : sanitized, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+// Note: color mapping is defined inside the component via iconPalette()

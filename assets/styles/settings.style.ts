@@ -23,17 +23,13 @@ export const createPreferencesStyles = (colors: ColorScheme) =>
       letterSpacing: 0.2,
     },
     section: {
-      marginTop: 16,
-      marginBottom: 6,
-      paddingHorizontal: 24,
+      marginTop: 10,
+      marginBottom: 0,
+      paddingHorizontal: 16,
     },
     sectionTitle: {
-      fontSize: 13,
-      fontWeight: '700',
-      color: colors.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: 0.7,
-      marginBottom: 8,
+      // iOS 16+ Settings removed visible section titles; keep style for reuse if needed.
+      display: 'none',
     },
     item: {
       flexDirection: 'row',
@@ -61,32 +57,34 @@ export const createPreferencesStyles = (colors: ColorScheme) =>
       backgroundColor: colors.card,
       borderWidth: 1,
       borderColor: colors.divider,
+      // iOS Settings-like: very subtle elevation; rely mostly on contrast
       shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
-      shadowRadius: 6,
-      elevation: 2,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.04,
+      shadowRadius: 4,
+      elevation: 1,
       overflow: 'hidden',
     },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 12,
+      paddingVertical: 14,
       paddingHorizontal: 16,
       backgroundColor: 'transparent',
     },
     rowDivider: {
       height: 1,
       backgroundColor: colors.divider,
-      marginLeft: 72,
+      // Indent to align with text when an icon pill is present (32 + 12 + 16)
+      marginLeft: 60,
     },
     iconArea: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 32,
+      height: 32,
+      borderRadius: 8,
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: 16,
+      marginRight: 12,
       backgroundColor: colors.surface,
     },
     itemTextArea: {
@@ -142,4 +140,5 @@ export const createPreferencesStyles = (colors: ColorScheme) =>
       color: colors.textMuted,
       marginTop: 2,
     },
+    // Floating search styles removed; no search on Settings
   });

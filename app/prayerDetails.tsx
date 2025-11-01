@@ -98,6 +98,8 @@ const PrayerDetailsScreen = () => {
     }
   };
 
+  // Text-to-speech removed
+
   if (!prayer) {
     return (
       <View style={homeStyles.container}>
@@ -184,7 +186,7 @@ const PrayerDetailsScreen = () => {
           </Text>
         </ScrollView>
 
-        {/* Floating Action Button for Favorite */}
+        {/* Favorite Button */}
         <TouchableOpacity
           onPress={handleToggleFavorite}
           style={[
